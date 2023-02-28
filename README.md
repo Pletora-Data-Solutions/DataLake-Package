@@ -32,7 +32,7 @@ In this repository you can find the python file with the utility package, `pipel
 
 With the AWS Glue Job, Package is able to do:
 
-* SQL queries in Amazon S3, with Amazon Athena
+* SQL queries in Amazon S3, with Amazon Athena.
 * Create a dataframe for SQL queries.
 * Get a list of Amazon S3 URIs for the most recent folders partitions.
 * Get the name of the bucket where the table is located.
@@ -49,30 +49,30 @@ setup(
     packages=find_packages()
 )
 ~~~
-2. In the `pletora-utility-package` folder, we created a `PackagePipeline` folder. In the `PackagePipeline` folder, we created the empty file `__init__.py` and paste `pipeline.py`, the file with the utility package. The folders structure:
+2. In the `pletora-utility-package` folder, we created a `pletora` folder. In the `pletora` folder, we created the empty file `__init__.py` and paste `pipeline.py`, the file with the utility package. The folders structure:
 ~~~
 >/pletora-utility-package/
       >setup.py 
       >__init__.py  
-      >/PackagePipeline/ 
+      >/pletora/ 
           >__init__.py 
           >pipeline.py
 ~~~
-3. We changed directory in the command prompt and navigate to your project root directory where setup.py is placed and we executed `python setup.py bdist_wheel`. A file with `.whl` extension, named `pipeline-1.0-py3-none-any.whl`, was created in an auto created sub-directory under the root, named `dist`.
+3. We changed directory in the command prompt and navigate to your project root directory where `setup.py` is placed and we executed `python setup.py bdist_wheel`. A file with `.whl` extension, named `pipeline-1.0-py3-none-any.whl`, was created in an auto created sub-directory under the root, named `dist`.
 
 ## How to use
 
 1. We created a Python file, named `import-pipeline.py`, to be used as a script for the AWS Glue job, and add the following code to the file:
 ~~~
-from PackagePipeline import pipeline
+from pletora.pipeline import Pipeline
 ~~~
 
 2. We can upload the files `pipeline-1.0-py3-none-any.whl` and `import-pipeline.py` to Amazon S3 Bucket. In our case, the uploaded file path is `s3://pletora-supernovae/scripts/libs/`.
 
 3. On the AWS Glue console, in the `Job details` (Advanced properties) of the Job of interest, specify the path to the `.whl` file, i.e. `s3://pletora-supernovae/scripts/libs/pipeline-1.0-py3-none-any.whl`, in the `Python library path` box. In the `Script` of the Job, we can do for example:
 ~~~
-from PackagePipeline import pipeline
-pl = pipeline.Pipeline(source_database, source_table, target_database, target_table, spark)
+from pletora.pipeline import Pipeline
+pl = Pipeline(source_database, source_table, target_database, target_table, spark)
 bucket_name = pl.get_bucket_name()
 print(bucket_name)
 ~~~
