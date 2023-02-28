@@ -11,26 +11,27 @@
 
 ## General Information
 
-This repository contains the utility package for a project under development on supernovae data, [Pletora Data Solutions](https://github.com/Pletora-Data-Solutions), which involves creating and manipulating tables and a Data Lake, using Amazon Web Services (AWS).
+This repository contains the utility package for all [Pletora Data Solutions](https://github.com/Pletora-Data-Solutions) projects, which involves creating and manipulating tables and data lakes, using Amazon Web Services (AWS). 
 
-In this repository you can find the python file with the utility package, `pipeline.py`, and the wheel file (executable pip package) made from it, `pipeline-1.0-py3-none-any.whl`.
+In this repository you can find the python file with the utility package, `pipeline.py`, and the wheel file (executable pip package) made from it, `pipeline-1.0-py3-none-any.whl`. Below is explained how to create and use the wheel file, to make working with the AWS Glue Job easier.
 
 ## Technologies Used
 
 * [Amazon Web Services (AWS)](https://aws.amazon.com/)
-  * [Amazon S3](https://aws.amazon.com/pt/s3/)
   * [AWS Glue 3.0](https://aws.amazon.com/glue/?nc1=h_ls)
     * [Job](https://docs.aws.amazon.com/glue/latest/dg/add-job.html)
     * [Crawler](https://docs.aws.amazon.com/glue/latest/dg/add-crawler.html)
+  * [Amazon S3](https://aws.amazon.com/pt/s3/)
   * [Amazon Athena](https://aws.amazon.com/athena/?nc1=h_ls)
 * [Python 3](https://www.python.org/)
     * [PySpark - Spark 3.1](https://spark.apache.org/docs/latest/api/python/)
 * [SQL](https://pt.wikipedia.org/wiki/SQL)
 
+With the AWS Glue Job, we can manipulate the data lake in Amazon S3 and query tables in Amazon Athena, using Python/PySpark and SQL.
+
 ## Features
 
-
-With the AWS Glue Job, Package is able to do:
+The package is able to do:
 
 * SQL queries in Amazon S3, with Amazon Athena.
 * Create a dataframe for SQL queries.
