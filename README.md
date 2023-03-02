@@ -13,7 +13,7 @@
 
 This repository contains the utility package for all [Pletora Data Solutions](https://github.com/Pletora-Data-Solutions) projects, which involves creating and manipulating tables and data lakes, using Amazon Web Services (AWS). 
 
-In this repository you can find the python file with the utility package, `pipeline.py`, and the wheel file (executable pip package) made from it, `pipeline-1.0-py3-none-any.whl`. Below is explained how to create and use the wheel file, to make working with the AWS Glue Job easier.
+In this repository you can find the python file with the utility package, in `pletora/pipeline.py`. Structuring the folders and files in the repository serves to generate a wheel file (executable pip package), which is needed to import the utility package into the AWS Glue job. Below is explained how to create and use the wheel file.
 
 ## Technologies Used
 
@@ -41,34 +41,27 @@ The package is able to do:
 
 ## Creating the wheel file
 
-1. We created a folder on the computer called `pletora-utility-package`, a empty file named `__init__.py` and other file, named `setup.py`, with the following code:
+1. Clone this repository on your local machine. Below is the important structure to generate the wheel file. The other files aren't necessary, but they don't cause any problems.
 ~~~
-from setuptools import setup, find_packages
-setup(
-    name='pipeline',
-    version='1.0',
-    packages=find_packages()
-)
-~~~
-2. In the `pletora-utility-package` folder, we created a `pletora` folder. In the `pletora` folder, we created the empty file `__init__.py` and paste `pipeline.py`, the file with the utility package. The folders structure:
-~~~
->/pletora-utility-package/
+>/Glue-DataLake-Utility-Package/
       >setup.py 
       >__init__.py  
       >/pletora/ 
           >__init__.py 
           >pipeline.py
 ~~~
-3. We changed directory in the command prompt and navigate to your project root directory where `setup.py` is placed and we executed `python setup.py bdist_wheel`. A file with `.whl` extension, named `pipeline-1.0-py3-none-any.whl`, was created in an auto created sub-directory under the root, named `dist`.
+
+
+2. Change directory in the command prompt and navigate to your project root directory where `setup.py` is placed. Execute `python setup.py bdist_wheel`. A file with `.whl` extension, named `pipeline-1.0-py3-none-any.whl`, was created in an auto created sub-directory under the root, named `dist`.
 
 ## How to use
 
-1. We created a Python file, named `import-pipeline.py`, to be used as a script for the AWS Glue job, and add the following code to the file:
+1. Create a Python file, named `import-pipeline.py`, to be used as a script for the AWS Glue job, and add the following code to the file:
 ~~~
 from pletora.pipeline import Pipeline
 ~~~
 
-2. We can upload the files `pipeline-1.0-py3-none-any.whl` and `import-pipeline.py` to Amazon S3 Bucket. In our case, the uploaded file path is `s3://pletora-supernovae/scripts/libs/`.
+2. Upload the files `pipeline-1.0-py3-none-any.whl` and `import-pipeline.py` to Amazon S3 Bucket. In our case, the uploaded file path is `s3://pletora-supernovae/scripts/libs/`.
 
 3. On the AWS Glue console, in the `Job details` (Advanced properties) of the Job of interest, specify the path to the `.whl` file, i.e. `s3://pletora-supernovae/scripts/libs/pipeline-1.0-py3-none-any.whl`, in the `Python library path` box. In the `Script` of the Job, we can do for example:
 ~~~
