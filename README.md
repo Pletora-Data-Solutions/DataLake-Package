@@ -4,9 +4,10 @@
 
 * [General Information](#general-information)
 * [Technologies Used](#technologies-used)
-* [Features of the utility package](#features)
+* [The package is able to do](#the-package-is-able-to-do)
 * [Creating the wheel file](#creating-the-wheel-file)
-* [How to use](#how-to-use)
+* [How to use the wheel file](#how-to-use-the-wheel-file)
+* [Contributing](#contributing)
 * [Contact](#contact)
 
 ## General Information
@@ -29,9 +30,7 @@ In this repository you can find the python file with the utility package, in `pl
 
 With the AWS Glue Job, we can manipulate the data lake in Amazon S3 and query tables in Amazon Athena, using Python/PySpark and SQL.
 
-## Features
-
-The package is able to do:
+## The package is able to do
 
 * SQL queries in Amazon S3, with Amazon Athena.
 * Create a dataframe for SQL queries.
@@ -54,7 +53,7 @@ The package is able to do:
 
 2. Change directory in the command prompt and navigate to your project root directory where `setup.py` is placed. Execute `python setup.py bdist_wheel`. A file with `.whl` extension, named `pipeline-1.0-py3-none-any.whl`, was created in an auto created sub-directory under the root, named `dist`.
 
-## How to use
+## How to use the wheel file
 
 1. Create a Python file, named `import-pipeline.py`, to be used as a script for the AWS Glue job, and add the following code to the file:
 ~~~
@@ -71,6 +70,17 @@ bucket_name = pl.get_bucket_name()
 print(bucket_name)
 ~~~
 
+## Contributing 
+
+Contributions are greatly appreciated!
+
+1. Fork the project.
+2. Create your feature branch: `git checkout -b feature/AmazingFeature`.
+3. Commit your changes: `git commit -m 'Add some amazing stuff'`.
+4. Push to the branch: `git push origin feature/AmazingFeature`.
+5. Create a new Pull Request.
+
+Issues and feature requests are welcome!
 
 ## Contact
 
