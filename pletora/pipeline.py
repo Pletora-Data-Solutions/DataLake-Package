@@ -5,16 +5,17 @@ class Pipeline:
         self.target_database = target_database
         self.target_table = target_table
         self.spark = spark
-
+        
     def query_athena(self, query: str) -> dict:
         """
-        Run the query and retrieve the result
+        Streams the results of a single query execution from the Athena query results location in Amazon S3. 
+        This request does not execute the query but returns results.
         """
         from boto3 import client
-
+        
         # Create an Athena client
         athena_client = client('athena')
-
+        
         # Technical debt
         query_execution_id = athena_client.start_query_execution(
             QueryString=query,
@@ -22,96 +23,116 @@ class Pipeline:
                 'OutputLocation': 's3://pletora-supernovae/temp/athena-results/'
             }
         )['QueryExecutionId']
-
+    
         query_status = 'QUEUED'
         while query_status in ['QUEUED', 'RUNNING']:
-            query_status = athena_client.get_query_execution(
-                QueryExecutionId=query_execution_id)['QueryExecution']['Status']['State']
-
+            query_status = athena_client.get_query_execution(QueryExecutionId=query_execution_id)['QueryExecution']['Status']['State']
+        
         if query_status == 'FAILED':
-            raise ValueError(f'Athena query\n{query}\nFAILED')
-
-        result = athena_client.get_query_results(
-            QueryExecutionId=query_execution_id)
+            raise ValueError(f'Athena query FAILED.')
+    
+        result = athena_client.get_query_results(QueryExecutionId=query_execution_id)
 
         return result
-
-    def get_source_last_partitions_dirr(self) -> list:
+        
+    def check_table_exists(self, database: str, table: str) -> bool:
+        """Check if table exists in database."""
+        
+        from boto3 import client
+        
+        # Create an Athena client
+        athena_client = client('athena')
+        
+        try:
+            response = athena_client.get_table_metadata(
+                CatalogName='AwsDataCatalog',
+                DatabaseName=database,
+                TableName=table
+            )
+            return True
+        except ClientError as e:
+            if e.response['Error']['Code'] == 'MetadataException':
+                return False
+            else:
+                raise e
+            
+    def get_source_partition(self) -> SparkDataFrame:
         """
-        Given a database and table from Athena, returns a list of S3 URI's for the most recent partitions.
+        Given a database and table from Athena, returns a SparkDataFrame with partitions general informations.
         """
-
+        from boto3 import client
+        glue_client = client('glue')
+        
+        try:
+            response = glue_client.get_partitions(
+                                    DatabaseName = self.source_database, 
+                                    TableName = self.source_table
+                                    )
+        except ClientError as e:
+            raise e
+        
+        data = []
+        for partition in response['Partitions']:
+            row = [v for v in partition['Values']] + [partition['CreationTime'], partition['StorageDescriptor']['Location']]
+            data.append(row)
+            schema = [f"partition_{n}" for n in range(len(partition['Values']))] + ['CreationTime', 'Location']
+        return self.spark.createDataFrame(data, schema)
+        
+        
+    def get_source_last_partitions(self) -> SparkDataFrame:
+        """
+        GroupBy partitions SparkDataFrame for the max(CreationTime) returning a SparkDataFrame with each partition max load date
+        """
+        df = self.get_source_partition()
+        
         import re
         # Explore partition to find date partition formated as YYYY-mm-dd
         i = 0
         self.date_partition = ''
         while self.date_partition == '':
-            temp = self.query_athena(f"SELECT partition_{i} FROM \"{self.source_database}\".\"{self.source_table}\"")[
-                'ResultSet']['Rows'][1]['Data'][0]['VarCharValue']
-            if re.match('[0-9]{4}-[0-9]{2}-[0-9]{2}', temp):
+            if re.match('[0-9]{4}-[0-9]{2}-[0-9]{2}', df.select(first(f'partition_{i}')).collect()[0][0]):
                 self.date_partition = f'partition_{i}'
             i += 1
-
-        # Extract the most recent partition value
-        self.last_date_partition_value = self.query_athena(f"SELECT MAX(CAST({self.date_partition} as date)) as last_date FROM \"{self.source_database}\".\"{self.source_table}\"")[
-            'ResultSet']['Rows'][1]['Data'][0]['VarCharValue']
-
-        # Extract s3 uri from last_patition
-        s3_uri = []
-        for row in self.query_athena(f"SELECT \"$path\" FROM \"{self.source_database}\".\"{self.source_table}\" WHERE {self.date_partition} = '{self.last_date_partition_value}'")['ResultSet']['Rows'][1:]:
-            s3_uri.append(row['Data'][0]['VarCharValue'])
-        return s3_uri
+            
+        remove_list = ['CreationTime', 'Location', self.date_partition]
+        columns = [column for column in df.columns if column not in remove_list]
+        print(columns)
+        
+        df.groupBy(columns).agg(max("CreationTime").alias('CreationTime')).show()
+        
+        return df.groupBy(columns).agg(max("CreationTime").alias('CreationTime')).join(df, columns + ['CreationTime'], how = 'inner')
+        
 
     def get_source_table(self):
-        """
-        Gets the query_athena standard result and transform it into a spark.DataFrame
-        """
-        self.get_source_last_partitions_dirr()
-        table_as_dict = self.query_athena(
-            f"SELECT * FROM \"{self.source_database}\".\"{self.source_table}\" WHERE {self.date_partition} = '{self.last_date_partition_value}'")
-
-        columns = [list(dict.values())[0]
-                   for dict in table_as_dict['ResultSet']['Rows'][0]['Data']]
-
-        # Creating data = [{"partition_0": "sne-2020-2024", "partition_1": "2023-02-11"}, {"partition_0": "value", "partition_1": "value1"}, ...]
-        data = []
-        for dict in table_as_dict['ResultSet']['Rows'][1:]:
-
-            temp = {}
-            # dict["Data"] = [{1}, {2}, {3}] ; columns = ['column1', 'column2', 'column3'] --> zip(columns, dict["Data"]) = [('column1', {1}), ('column2'), {2}, ...]
-            for z in zip(columns, dict['Data']):
-                temp[z[0]] = list(z[1].values())[0]
-
-            data.append(temp)
-
-        df = self.spark.createDataFrame(data)
-        return df
-
+        return None
+        
     def get_bucket_name(self) -> str:
         """
         Get the name of the bucket where the table is located
         """
-        self.bucket_name = self.get_source_last_partitions_dirr()[
-            0].split('/')[2]
+        self.bucket_name = self.get_source_last_partitions().select(first(f'Location')).collect()[0][0].split('/')[2]
         return self.bucket_name
-
-    def save_parquet(self, df, key: str) -> None:
+        
+    def save_parquet(self, df: SparkDataFrame, key: str) -> None:
         """
         target_uri: s3:// + self.bucket_name + key; key = path + file_name
-
+        
         Example:
-            key = '20-raw/git/{table_name}/.../partition_n/supernovae.parquet'
+            key = '20-raw/git/{table_name}'
+            
             target_uri = s3://{bucket_name}/20-raw/git/{table_name}/.../partition_n/{current_date}/supernovae.parquet
         """
         from datetime import date
         today = date.today().strftime("%Y-%m-%d")
-
+        
         key = key.split('/')
         key.insert(-1, today)
         key = '/'.join(key)
-
+        
         self.get_bucket_name()
-
+        
         target_uri = f"s3://{self.bucket_name}/{key}"
-        df.write.mode('overwrite').parquet(target_uri)
+        
+        df.write.mode('overwrite').parquet(target_uri) #add partitionBy(*list_of_partition_like_columns)
+        
         return None
