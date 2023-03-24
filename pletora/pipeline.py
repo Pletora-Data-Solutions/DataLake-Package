@@ -1,3 +1,6 @@
+from pyspark.sql.functions import *
+from pyspark.sql import DataFrame as SparkDataFrame
+
 class Pipeline:
     def __init__(self, source_database, source_table, target_database, target_table, spark):
         self.source_database = source_database
