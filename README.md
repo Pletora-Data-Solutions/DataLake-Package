@@ -92,7 +92,7 @@ Feel free to send contributions, reviews, questions and/or suggestions for each 
 <div  align="center"> 
 <table>
   <tr>
-    <td align="center"> <b> Lucas Corbanez </b> (Coordinator)</td>
+    <td align="center"> <b> Lucas Corbanez </b> </td>
     <td>
       <a href="https://github.com/Corbanez97" target="_blank"><img src="https://img.shields.io/badge/GitHub-100000?style=for-the-badge&logo=github&logoColor=white" target="_blank"></a> 
       <a href="https://www.linkedin.com/in/lucas-corbanez/" target="_blank"><img src="https://img.shields.io/badge/-LinkedIn-%230077B5?style=for-the-badge&logo=linkedin&logoColor=white" target="_blank"></a> 
