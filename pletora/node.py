@@ -1,7 +1,7 @@
 from pyspark.sql.functions import *
 from pyspark.sql import DataFrame as SparkDataFrame
 
-class Pipe:
+class Node:
     def __init__(self, source_database, source_table, target_database, target_table, spark):
         self.source_database = source_database
         self.source_table = source_table
