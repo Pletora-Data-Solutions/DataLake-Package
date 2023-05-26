@@ -16,7 +16,7 @@
 
 This repository contains the utility package for all [Pletora Data Solutions](https://github.com/Pletora-Data-Solutions) projects, which involves creating and manipulating tables and data lakes, using Amazon Web Services (AWS). 
 
-In this repository you can find the python file with the utility package, in `pletora/pipe.py`. Structuring the folders and files in the repository serves to generate a wheel file (executable pip package), which is needed to import the utility package into the AWS Glue Job. 
+In this repository you can find the python file with the utility package, in `pletora/node.py`. Structuring the folders and files in the repository serves to generate a wheel file (executable pip package), which is needed to import the utility package into the AWS Glue Job. 
 
 Below is explained how to create and use the wheel file as well as other features of the project.
 
@@ -55,26 +55,26 @@ The data in the data lake can be utilized to train machine learning models, whic
       >__init__.py  
       >/pletora/ 
           >__init__.py 
-          >pipe.py
+          >node.py
 ~~~
 
 
-2. Change directory in the command prompt and navigate to your project root directory where `setup.py` is placed. Execute `python setup.py bdist_wheel`. A file with `.whl` extension, named `pipe-1.0-py3-none-any.whl`, was created in an auto created sub-directory under the root, named `dist`.
+2. Change directory in the command prompt and navigate to your project root directory where `setup.py` is placed. Execute `python setup.py bdist_wheel`. A file with `.whl` extension, named `node-1.0-py3-none-any.whl`, was created in an auto created sub-directory under the root, named `dist`.
 
 ## How to use the wheel file
 
-1. Create a Python file, named `import-pipe.py`, to be used as a script for the AWS Glue job, and add the following code to the file:
+1. Create a Python file, named `import-node.py`, to be used as a script for the AWS Glue job, and add the following code to the file:
 ~~~
-from pletora.pipe import Pipe
+from pletora.node import Node
 ~~~
 
-2. Upload the files `pipe-1.0-py3-none-any.whl` and `import-pipe.py` to Amazon S3 Bucket. In our case, the uploaded file path is `s3://pletora-supernovae/scripts/libs/`.
+2. Upload the files `node-1.0-py3-none-any.whl` and `import-node.py` to Amazon S3 Bucket. In our case, the uploaded file path is `s3://pletora-supernovae/scripts/libs/`.
 
-3. On the AWS Glue console, in the `Job details` (Advanced properties) of the Job of interest, specify the path to the `.whl` file, i.e. `s3://pletora-supernovae/scripts/libs/pipe-1.0-py3-none-any.whl`, in the `Python library path` box. In the `Script` of the Job, we can do for example:
+3. On the AWS Glue console, in the `Job details` (Advanced properties) of the Job of interest, specify the path to the `.whl` file, i.e. `s3://pletora-supernovae/scripts/libs/node-1.0-py3-none-any.whl`, in the `Python library path` box. In the `Script` of the Job, we can do for example:
 ~~~
-from pletora.pipe import Pipe
-pl = Pipe(source_database, source_table, target_database, target_table, spark)
-bucket_name = pl.get_bucket_name()
+from pletora.node import Node
+nd = Node(source_database, source_table, target_database, target_table, spark)
+bucket_name = nd.get_bucket_name()
 print(bucket_name)
 ~~~
 
